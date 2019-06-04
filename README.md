@@ -37,3 +37,5 @@ tasks:
         > _include/webring-out.html
 # ...
 ```
+
+![Screenshot of a generated web ring](https://sr.ht/TRrJ.png)
