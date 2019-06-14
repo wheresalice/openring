@@ -118,6 +118,9 @@ func main() {
 	sort.Slice(articles, func(i, j int) bool {
 		return articles[i].Date.After(articles[j].Date)
 	})
+	if len(articles) < narticles {
+		narticles = len(articles)
+	}
 	articles = articles[:narticles]
 	err = tmpl.Execute(os.Stdout, struct{
 		Articles []*Article
