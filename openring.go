@@ -27,12 +27,13 @@ type Article struct {
 
 func main() {
 	var (
-		narticles  int        = 3
-		summaryLen int        = 256
+		narticles  int = 3
+		perSource  int = 1
+		summaryLen int = 256
 		sources    []*url.URL
 	)
 
-	opts, optind, err := getopt.Getopts(os.Args[1:], "l:n:s:")
+	opts, optind, err := getopt.Getopts(os.Args[1:], "l:n:p:s:")
 	if err != nil {
 		panic(err)
 	}
@@ -45,6 +46,11 @@ func main() {
 			}
 		case 'n':
 			narticles, err = strconv.Atoi(opt.Value)
+			if err != nil {
+				panic(err)
+			}
+		case 'p':
+			perSource, err = strconv.Atoi(opt.Value)
 			if err != nil {
 				panic(err)
 			}
@@ -103,17 +109,22 @@ func main() {
 			log.Printf("Warning: feed %s has no items", feed.Title)
 			continue
 		}
-		item := feed.Items[0]
-		summary := runewidth.Truncate(
-			policy.Sanitize(item.Summary), summaryLen, "…")
-		articles = append(articles, &Article{
-			Date:        item.Date,
-			SourceLink:  feed.Link,
-			SourceTitle: feed.Title,
-			Summary:     template.HTML(summary),
-			Title:       item.Title,
-			Link:        item.Link,
-		})
+		items := feed.Items
+		if len(items) > perSource {
+			items = items[:perSource]
+		}
+		for _, item := range items {
+			summary := runewidth.Truncate(
+				policy.Sanitize(item.Summary), summaryLen, "…")
+			articles = append(articles, &Article{
+				Date:        item.Date,
+				SourceLink:  feed.Link,
+				SourceTitle: feed.Title,
+				Summary:     template.HTML(summary),
+				Title:       item.Title,
+				Link:        item.Link,
+			})
+		}
 	}
 	sort.Slice(articles, func(i, j int) bool {
 		return articles[i].Date.After(articles[j].Date)
