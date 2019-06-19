@@ -1,6 +1,7 @@
 package main
 
 import (
+	"html"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -114,8 +115,12 @@ func main() {
 			items = items[:perSource]
 		}
 		for _, item := range items {
+			raw_summary := item.Summary
+			if len(raw_summary) == 0 {
+				raw_summary = html.UnescapeString(item.Content)
+			}
 			summary := runewidth.Truncate(
-				policy.Sanitize(item.Summary), summaryLen, "…")
+				policy.Sanitize(raw_summary), summaryLen, "…")
 			articles = append(articles, &Article{
 				Date:        item.Date,
 				SourceLink:  feed.Link,
