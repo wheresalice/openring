@@ -8,14 +8,34 @@ import (
 	"net/url"
 	"os"
 	"sort"
-	"strconv"
+	"strings"
 	"time"
+
+	"git.sr.ht/~sircmpwn/getopt"
 
 	"github.com/SlyMarbo/rss"
 	"github.com/mattn/go-runewidth"
 	"github.com/microcosm-cc/bluemonday"
-	"git.sr.ht/~sircmpwn/getopt"
 )
+
+type urlSlice []*url.URL
+
+func (us *urlSlice) String() string {
+	var str []string
+	for _, u := range *us {
+		str = append(str, u.String())
+	}
+	return strings.Join(str, ", ")
+}
+
+func (us *urlSlice) Set(val string) error {
+	u, err := url.Parse(val)
+	if err != nil {
+		return err
+	}
+	*us = append(*us, u)
+	return nil
+}
 
 type Article struct {
 	Date        time.Time
@@ -28,46 +48,21 @@ type Article struct {
 
 func main() {
 	var (
-		narticles  int = 3
-		perSource  int = 1
-		summaryLen int = 256
+		narticles  = getopt.Int("n", 3, "article count")
+		perSource  = getopt.Int("p", 1, "articles to take from each source")
+		summaryLen = getopt.Int("l", 256, "length of summaries")
 		sources    []*url.URL
 	)
+	getopt.Var((*urlSlice)(&sources), "s", "list of sources")
 
-	opts, optind, err := getopt.Getopts(os.Args[1:], "l:n:p:s:")
+	getopt.Usage = func() {
+		log.Fatalf("Usage: %s [-s https://source.rss...] < in.html > out.html",
+			os.Args[0])
+	}
+
+	err := getopt.Parse()
 	if err != nil {
 		panic(err)
-	}
-	for _, opt := range opts {
-		switch opt.Option {
-		case 'l':
-			summaryLen, err = strconv.Atoi(opt.Value)
-			if err != nil {
-				panic(err)
-			}
-		case 'n':
-			narticles, err = strconv.Atoi(opt.Value)
-			if err != nil {
-				panic(err)
-			}
-		case 'p':
-			perSource, err = strconv.Atoi(opt.Value)
-			if err != nil {
-				panic(err)
-			}
-		case 's':
-			u, err := url.Parse(opt.Value)
-			if err != nil {
-				panic(err)
-			}
-			sources = append(sources, u)
-		}
-	}
-
-	if len(os.Args[optind+1:]) != 0 {
-		log.Fatalf(
-			"Usage: %s [-s https://source.rss...] < in.html > out.html",
-			os.Args[0])
 	}
 
 	input, err := ioutil.ReadAll(os.Stdin)
@@ -111,8 +106,8 @@ func main() {
 			continue
 		}
 		items := feed.Items
-		if len(items) > perSource {
-			items = items[:perSource]
+		if len(items) > *perSource {
+			items = items[:*perSource]
 		}
 		for _, item := range items {
 			raw_summary := item.Summary
@@ -120,7 +115,7 @@ func main() {
 				raw_summary = html.UnescapeString(item.Content)
 			}
 			summary := runewidth.Truncate(
-				policy.Sanitize(raw_summary), summaryLen, "…")
+				policy.Sanitize(raw_summary), *summaryLen, "…")
 			articles = append(articles, &Article{
 				Date:        item.Date,
 				SourceLink:  feed.Link,
@@ -134,11 +129,11 @@ func main() {
 	sort.Slice(articles, func(i, j int) bool {
 		return articles[i].Date.After(articles[j].Date)
 	})
-	if len(articles) < narticles {
-		narticles = len(articles)
+	if len(articles) < *narticles {
+		*narticles = len(articles)
 	}
-	articles = articles[:narticles]
-	err = tmpl.Execute(os.Stdout, struct{
+	articles = articles[:*narticles]
+	err = tmpl.Execute(os.Stdout, struct {
 		Articles []*Article
 	}{
 		Articles: articles,
