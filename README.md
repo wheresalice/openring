@@ -38,4 +38,13 @@ tasks:
 # ...
 ```
 
+## Contributing
+
+Want to help? [Send patches](https://git-send-email.io) to the [mailing
+list](https://lists.sr.ht/~sircmpwn/public-inbox):
+[`~sircmpwn/public-inbox@lists.sr.ht`](mailto:~sircmpwn/public-inbox@lists.sr.ht).
+Thanks!
+
+---
+
 ![Screenshot of a generated web ring](https://sr.ht/TRrJ.png)
