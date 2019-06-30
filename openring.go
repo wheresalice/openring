@@ -109,6 +109,14 @@ func main() {
 		if len(items) > *perSource {
 			items = items[:*perSource]
 		}
+		base, err := url.Parse(feed.UpdateURL)
+		if err != nil {
+			log.Fatal("failed parsing update URL of the feed")
+		}
+		feedLink, _ := url.Parse(feed.Link)
+		if err != nil {
+			log.Fatal("failed parsing canonical feed URL of the feed")
+		}
 		for _, item := range items {
 			raw_summary := item.Summary
 			if len(raw_summary) == 0 {
@@ -116,13 +124,19 @@ func main() {
 			}
 			summary := runewidth.Truncate(
 				policy.Sanitize(raw_summary), *summaryLen, "…")
+
+			itemLink, _ := url.Parse(item.Link)
+			if err != nil {
+				log.Fatal("failed parsing article URL of the feed item")
+			}
+
 			articles = append(articles, &Article{
 				Date:        item.Date,
-				SourceLink:  feed.Link,
+				SourceLink:  base.ResolveReference(feedLink).String(),
 				SourceTitle: feed.Title,
 				Summary:     template.HTML(summary),
 				Title:       item.Title,
-				Link:        item.Link,
+				Link:        base.ResolveReference(itemLink).String(),
 			})
 		}
 	}
