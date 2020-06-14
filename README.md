@@ -19,25 +19,6 @@ sources, and pass them to the template and write the output to out.html. Then
 you can include this file with your static site generator's normal file include
 mechanism.
 
-A pre-compiled binary is available [here](https://yukari.sr.ht/openring) so you
-can integrate this with your CI deploy. For example, on
-[builds.sr.ht](https://sourcehut.org), add a step like this to your
-`.build.yml`:
-
-```yaml
-tasks:
-  - openring: |
-      curl -O https://yukari.sr.ht/openring
-      chmod +x openring
-      ./openring \
-        -s https://drewdevault.com/feed.xml \
-        -s https://emersion.fr/blog/rss.xml \
-        -s https://danluu.com/atom.xml \
-        < _include/webring-in.html \
-        > _include/webring-out.html
-# ...
-```
-
 ## Contributing
 
 Want to help? [Send patches](https://git-send-email.io) to the [mailing
