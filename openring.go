@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"html"
 	"html/template"
 	"io/ioutil"
@@ -51,6 +52,7 @@ func main() {
 		narticles  = getopt.Int("n", 3, "article count")
 		perSource  = getopt.Int("p", 1, "articles to take from each source")
 		summaryLen = getopt.Int("l", 256, "length of summaries")
+		urlsFile   = getopt.String("S", "", "file with URLs of sources")
 		sources    []*url.URL
 	)
 	getopt.Var((*urlSlice)(&sources), "s", "list of sources")
@@ -63,6 +65,18 @@ func main() {
 	err := getopt.Parse()
 	if err != nil {
 		panic(err)
+	}
+
+	if *urlsFile != "" {
+		file, err := os.Open(*urlsFile)
+		if err != nil {
+			panic(err)
+		}
+		sc := bufio.NewScanner(file)
+		for sc.Scan() {
+			(*urlSlice)(&sources).Set(sc.Text())
+		}
+		file.Close()
 	}
 
 	input, err := ioutil.ReadAll(os.Stdin)
