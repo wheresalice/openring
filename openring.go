@@ -130,7 +130,7 @@ func main() {
 		if err != nil {
 			log.Fatal("failed parsing update URL of the feed")
 		}
-		feedLink, _ := url.Parse(feed.Link)
+		feedLink, err := url.Parse(feed.Link)
 		if err != nil {
 			log.Fatal("failed parsing canonical feed URL of the feed")
 		}
