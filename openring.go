@@ -107,6 +107,10 @@ func main() {
 			log.Printf("Error fetching %s: %s", source.String(), err.Error())
 			continue
 		}
+		if feed.Title == "" {
+			log.Printf("Warning: feed from %s has no title", source.Host)
+			feed.Title = source.Host
+		}
 		feeds = append(feeds, feed)
 		log.Printf("Fetched %s", feed.Title)
 	}
@@ -142,7 +146,7 @@ func main() {
 			summary := runewidth.Truncate(
 				policy.Sanitize(raw_summary), *summaryLen, "…")
 
-			itemLink, _ := url.Parse(item.Link)
+			itemLink, err := url.Parse(item.Link)
 			if err != nil {
 				log.Fatal("failed parsing article URL of the feed item")
 			}
