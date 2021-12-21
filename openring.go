@@ -1,3 +1,15 @@
+// License-Id: GPL-3.0-only
+// Copyright: 2019 Drew DeVault <sir@cmpwn.com>
+// Copyright: 2019 Haelwenn (lanodan) Monnier <contact@hacktivis.me>
+// Copyright: 2019 Jeff Kaufman <jeff.t.kaufman@gmail.com>
+// Copyright: 2019 Nate Dobbins <nated@posteo.net>
+// Copyright: 2019 Noah Loomans <noah@noahloomans.com>
+// Copyright: 2019 Philip K <philip@warpmail.net>
+// Copyright: 2019 Simon Ser <contact@emersion.fr>
+// Copyright: 2020 Drew DeVault <sir@cmpwn.com>
+// Copyright: 2020 skuzzymiglet <skuzzymiglet@gmail.com>
+// Copyright: 2021 Gianluca Arbezzano <ciao@gianarb.it>
+// Copyright: 2021 sourque <contact@sourque.com>
 package main
 
 import (
