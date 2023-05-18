@@ -10,45 +10,25 @@
 // Copyright: 2020 skuzzymiglet <skuzzymiglet@gmail.com>
 // Copyright: 2021 Gianluca Arbezzano <ciao@gianarb.it>
 // Copyright: 2021 sourque <contact@sourque.com>
+// Copyright: 2023 wheresalice
 package main
 
 import (
-	"bufio"
+	"fmt"
+	"gopkg.in/yaml.v3"
 	"html"
 	"html/template"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/url"
 	"os"
 	"sort"
-	"strings"
 	"time"
-
-	"git.sr.ht/~sircmpwn/getopt"
 
 	"github.com/SlyMarbo/rss"
 	"github.com/mattn/go-runewidth"
 	"github.com/microcosm-cc/bluemonday"
 )
-
-type urlSlice []*url.URL
-
-func (us *urlSlice) String() string {
-	var str []string
-	for _, u := range *us {
-		str = append(str, u.String())
-	}
-	return strings.Join(str, ", ")
-}
-
-func (us *urlSlice) Set(val string) error {
-	u, err := url.Parse(val)
-	if err != nil {
-		return err
-	}
-	*us = append(*us, u)
-	return nil
-}
 
 type Article struct {
 	Date        time.Time
@@ -59,39 +39,35 @@ type Article struct {
 	Title       string
 }
 
+type Site struct {
+	Name string `yaml:"name"`
+	URL  string `yaml:"url"`
+	RSS  string `yaml:"rss"`
+}
+
 func main() {
 	var (
-		narticles  = getopt.Int("n", 3, "article count")
-		perSource  = getopt.Int("p", 1, "articles to take from each source")
-		summaryLen = getopt.Int("l", 256, "length of summaries")
-		urlsFile   = getopt.String("S", "", "file with URLs of sources")
-		sources    []*url.URL
+		articlesCount   = 3
+		articlesPerSite = 1
+		summaryLength   = 256
 	)
-	getopt.Var((*urlSlice)(&sources), "s", "list of sources")
 
-	getopt.Usage = func() {
-		log.Fatalf("Usage: %s [-s https://source.rss...] < in.html > out.html",
-			os.Args[0])
+	if len(os.Args) != 2 {
+		log.Fatal("Usage: openring site.yml < in.html")
 	}
 
-	err := getopt.Parse()
+	data, err := os.ReadFile(os.Args[1])
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-
-	if *urlsFile != "" {
-		file, err := os.Open(*urlsFile)
-		if err != nil {
-			panic(err)
-		}
-		sc := bufio.NewScanner(file)
-		for sc.Scan() {
-			(*urlSlice)(&sources).Set(sc.Text())
-		}
-		file.Close()
+	var sites []Site
+	err = yaml.Unmarshal(data, &sites)
+	if err != nil {
+		log.Fatal(err)
 	}
+	fmt.Printf("%+v\n", sites)
 
-	input, err := ioutil.ReadAll(os.Stdin)
+	input, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		panic(err)
 	}
@@ -113,15 +89,15 @@ func main() {
 
 	log.Println("Fetching feeds...")
 	var feeds []*rss.Feed
-	for _, source := range sources {
-		feed, err := rss.Fetch(source.String())
+	for _, site := range sites {
+		feed, err := rss.Fetch(site.RSS)
 		if err != nil {
-			log.Printf("Error fetching %s: %s", source.String(), err.Error())
+			log.Printf("Error fetching %s: %s", site.RSS, err.Error())
 			continue
 		}
 		if feed.Title == "" {
-			log.Printf("Warning: feed from %s has no title", source.Host)
-			feed.Title = source.Host
+			log.Printf("Warning: feed from %s has no title", site.RSS)
+			feed.Title = site.Name
 		}
 		feeds = append(feeds, feed)
 		log.Printf("Fetched %s", feed.Title)
@@ -139,8 +115,8 @@ func main() {
 			continue
 		}
 		items := feed.Items
-		if len(items) > *perSource {
-			items = items[:*perSource]
+		if len(items) > articlesPerSite {
+			items = items[:articlesPerSite]
 		}
 		base, err := url.Parse(feed.UpdateURL)
 		if err != nil {
@@ -151,12 +127,12 @@ func main() {
 			log.Fatal("failed parsing canonical feed URL of the feed")
 		}
 		for _, item := range items {
-			raw_summary := item.Summary
-			if len(raw_summary) == 0 {
-				raw_summary = html.UnescapeString(item.Content)
+			rawSummary := item.Summary
+			if len(rawSummary) == 0 {
+				rawSummary = html.UnescapeString(item.Content)
 			}
 			summary := runewidth.Truncate(
-				policy.Sanitize(raw_summary), *summaryLen, "…")
+				policy.Sanitize(rawSummary), summaryLength, "…")
 
 			itemLink, err := url.Parse(item.Link)
 			if err != nil {
@@ -176,10 +152,10 @@ func main() {
 	sort.Slice(articles, func(i, j int) bool {
 		return articles[i].Date.After(articles[j].Date)
 	})
-	if len(articles) < *narticles {
-		*narticles = len(articles)
+	if len(articles) < articlesCount {
+		articlesCount = len(articles)
 	}
-	articles = articles[:*narticles]
+	articles = articles[:articlesCount]
 	err = tmpl.Execute(os.Stdout, struct {
 		Articles []*Article
 	}{

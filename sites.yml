@@ -1,0 +1,4 @@
+---
+- name: alice
+  url: https://example.com
+  rss: https://example.com/index.xml
