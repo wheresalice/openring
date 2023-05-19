@@ -14,7 +14,6 @@
 package main
 
 import (
-	"fmt"
 	"gopkg.in/yaml.v3"
 	"html"
 	"html/template"
@@ -65,7 +64,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("%+v\n", sites)
 
 	input, err := io.ReadAll(os.Stdin)
 	if err != nil {
