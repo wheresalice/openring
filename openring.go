@@ -52,7 +52,7 @@ func main() {
 	)
 
 	if len(os.Args) != 2 {
-		log.Fatal("Usage: openring site.yml < in.html")
+		log.Fatal("Usage: openring site.json < in.html")
 	}
 
 	data, err := os.ReadFile(os.Args[1])
