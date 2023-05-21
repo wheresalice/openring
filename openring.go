@@ -46,7 +46,7 @@ type Site struct {
 
 func main() {
 	var (
-		articlesCount   = 3
+		articlesCount   = 10
 		articlesPerSite = 1
 		summaryLength   = 256
 	)
