@@ -5,7 +5,7 @@ other blogs you like on your own blog. It's designed to be fairly simple and
 integrate with any static site generator. The basic usage is:
 
 ```
-openring sites.yml < in.html > out.html
+openring sites.json < in.html > out.html
 ```
 
 This will read the template at in.html (an example is provided, but feel free to

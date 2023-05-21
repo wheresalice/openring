@@ -14,7 +14,7 @@
 package main
 
 import (
-	"gopkg.in/yaml.v3"
+	"encoding/json"
 	"html"
 	"html/template"
 	"io"
@@ -39,9 +39,9 @@ type Article struct {
 }
 
 type Site struct {
-	Name string `yaml:"name"`
-	URL  string `yaml:"url"`
-	RSS  string `yaml:"rss"`
+	Name string `json:"name"`
+	URL  string `json:"url"`
+	RSS  string `json:"rss"`
 }
 
 func main() {
@@ -60,7 +60,7 @@ func main() {
 		log.Fatal(err)
 	}
 	var sites []Site
-	err = yaml.Unmarshal(data, &sites)
+	err = json.Unmarshal(data, &sites)
 	if err != nil {
 		log.Fatal(err)
 	}
