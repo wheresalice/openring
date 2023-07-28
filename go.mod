@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/SlyMarbo/rss v1.0.5
-	github.com/mattn/go-runewidth v0.0.14
+	github.com/mattn/go-runewidth v0.0.15
 	github.com/microcosm-cc/bluemonday v1.0.25
 )
 
